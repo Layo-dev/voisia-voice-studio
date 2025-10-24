@@ -5,16 +5,100 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+
+const signInSchema = z.object({
+  email: z.string().email("Invalid email address").max(255),
+  password: z.string().min(8, "Password must be at least 8 characters").max(72),
+});
+
+const signUpSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email address").max(255),
+  password: z.string().min(8, "Password must be at least 8 characters").max(72),
+});
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { signIn, signUp, user } = useAuthContext();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implement authentication
-    setTimeout(() => setIsLoading(false), 1000);
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    try {
+      const validated = signInSchema.parse(data);
+      const { error } = await signIn(validated.email, validated.password);
+      
+      if (!error) {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get("name") as string,
+      email: formData.get("signup-email") as string,
+      password: formData.get("signup-password") as string,
+    };
+
+    try {
+      const validated = signUpSchema.parse(data);
+      const { error } = await signUp(validated.email, validated.password, validated.name);
+      
+      if (!error) {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,28 +132,36 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="signin">
-                <form onSubmit={handleSubmit} className="glass-card rounded-xl p-8 space-y-6">
+                <form onSubmit={handleSignIn} className="glass-card rounded-xl p-8 space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
+                        name="email"
                         type="email"
                         placeholder="you@example.com"
                         required
                         className="bg-input/50"
                       />
+                      {errors.email && (
+                        <p className="text-xs text-destructive">{errors.email}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="password">Password</Label>
                       <Input
                         id="password"
+                        name="password"
                         type="password"
                         placeholder="••••••••"
                         required
                         className="bg-input/50"
                       />
+                      {errors.password && (
+                        <p className="text-xs text-destructive">{errors.password}</p>
+                      )}
                     </div>
                   </div>
 
@@ -91,39 +183,51 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSubmit} className="glass-card rounded-xl p-8 space-y-6">
+                <form onSubmit={handleSignUp} className="glass-card rounded-xl p-8 space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name</Label>
                       <Input
                         id="name"
+                        name="name"
                         type="text"
                         placeholder="John Doe"
                         required
                         className="bg-input/50"
                       />
+                      {errors.name && (
+                        <p className="text-xs text-destructive">{errors.name}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
                       <Input
                         id="signup-email"
+                        name="signup-email"
                         type="email"
                         placeholder="you@example.com"
                         required
                         className="bg-input/50"
                       />
+                      {errors.email && (
+                        <p className="text-xs text-destructive">{errors.email}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Password</Label>
                       <Input
                         id="signup-password"
+                        name="signup-password"
                         type="password"
                         placeholder="••••••••"
                         required
                         className="bg-input/50"
                       />
+                      {errors.password && (
+                        <p className="text-xs text-destructive">{errors.password}</p>
+                      )}
                     </div>
                   </div>
 

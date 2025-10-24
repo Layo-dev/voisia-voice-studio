@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          credits: number | null
+          email: string | null
+          id: string
+          name: string | null
+          plan: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits?: number | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          plan?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          plan?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string | null
@@ -68,35 +98,29 @@ export type Database = {
             foreignKeyName: "subscriptions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      users: {
+      user_roles: {
         Row: {
           created_at: string | null
-          credits: number | null
-          email: string
           id: string
-          name: string | null
-          plan: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Insert: {
           created_at?: string | null
-          credits?: number | null
-          email: string
           id?: string
-          name?: string | null
-          plan?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Update: {
           created_at?: string | null
-          credits?: number | null
-          email?: string
           id?: string
-          name?: string | null
-          plan?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -133,7 +157,7 @@ export type Database = {
             foreignKeyName: "voiceovers_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -143,10 +167,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -273,6 +303,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
