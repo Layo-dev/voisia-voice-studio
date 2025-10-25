@@ -3,10 +3,64 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Sparkles, Volume2 } from "lucide-react";
+import { Sparkles, Volume2, Loader2, Download, Play } from "lucide-react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 export const Hero = () => {
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("alloy");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+
+  const handleGenerate = async () => {
+    if (!user) {
+      toast.error("Please sign in to generate voiceovers");
+      navigate("/auth");
+      return;
+    }
+
+    if (!text.trim()) {
+      toast.error("Please enter some text");
+      return;
+    }
+
+    setIsGenerating(true);
+    setGeneratedAudio(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-voiceover', {
+        body: { text: text.trim(), voice }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        if (data.error.includes('Insufficient credits')) {
+          toast.error(data.error, {
+            action: {
+              label: "Upgrade",
+              onClick: () => navigate("/pricing")
+            }
+          });
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+
+      setGeneratedAudio(data.voiceover.audio_url);
+      toast.success(`Voiceover generated! ${data.creditsUsed} credits used, ${data.creditsRemaining} remaining`);
+    } catch (error) {
+      console.error('Generation error:', error);
+      toast.error("Failed to generate voiceover. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   return <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Gradient Glow Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_hsl(250_85%_65%/0.2)_0%,_transparent_70%)]" />
@@ -113,14 +167,48 @@ export const Hero = () => {
 
             {/* Generate Button */}
             <div className="flex gap-3">
-              <Button variant="hero" size="lg" className="flex-1 text-base" disabled={!text.trim()}>
-                <Sparkles className="w-5 h-5" />
-                Generate Voice
-              </Button>
-              <Button variant="outline" size="lg">
-                Preview
+              <Button 
+                variant="hero" 
+                size="lg" 
+                className="flex-1 text-base" 
+                disabled={!text.trim() || isGenerating || !user}
+                onClick={handleGenerate}
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Generate Voice
+                  </>
+                )}
               </Button>
             </div>
+
+            {/* Generated Audio Player */}
+            {generatedAudio && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    <Play className="w-4 h-4" />
+                    Your Voiceover
+                  </span>
+                  <a href={generatedAudio} download className="text-primary hover:text-primary/80">
+                    <Download className="w-4 h-4" />
+                  </a>
+                </div>
+                <audio controls className="w-full" src={generatedAudio}>
+                  Your browser does not support the audio element.
+                </audio>
+              </motion.div>
+            )}
 
             {/* Advanced Settings Toggle */}
             <button className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-2 mx-auto">
