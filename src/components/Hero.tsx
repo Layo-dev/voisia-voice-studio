@@ -8,6 +8,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 export const Hero = () => {
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("alloy");
@@ -15,6 +16,35 @@ export const Hero = () => {
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
   const { user } = useAuthContext();
   const navigate = useNavigate();
+
+  // Fetch user profile data including credits
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("credits, plan")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Plan limits
+  const planLimits = {
+    free: 1000,
+    pro: 50000,
+  };
+
+  const currentLimit = profile?.plan ? planLimits[profile.plan as keyof typeof planLimits] || planLimits.free : planLimits.free;
+  const remainingChars = profile?.credits || 0;
 
   const handleGenerate = async () => {
     if (!user) {
@@ -123,7 +153,16 @@ export const Hero = () => {
                 <Textarea placeholder="Type or paste your text here to generate a voiceover..." value={text} onChange={e => setText(e.target.value)} className="min-h-[120px] resize-none bg-input/50 border-border/50 focus:border-primary/50 transition-colors" />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{text.length} characters</span>
-                  <span>Free: 1000 characters remaining</span>
+                  <span>
+                    {profile ? (
+                      <>
+                        {profile.plan === 'pro' ? 'Pro' : 'Free'}: {remainingChars.toLocaleString()} credits remaining
+                        {profile.plan !== 'pro' && ` (${currentLimit.toLocaleString()} char limit)`}
+                      </>
+                    ) : (
+                      "Sign in to generate voiceovers"
+                    )}
+                  </span>
                 </div>
               </div>
 

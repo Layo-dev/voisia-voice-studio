@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.76.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,15 +13,32 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voice } = await req.json();
+    // Input validation schema
+    const inputSchema = z.object({
+      text: z.string()
+        .min(1, "Text cannot be empty")
+        .max(10000, "Text exceeds maximum length")
+        .trim(),
+      voice: z.enum(['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'], {
+        errorMap: () => ({ message: "Invalid voice selection" })
+      })
+    });
 
-    // Validate inputs
-    if (!text || !voice) {
+    const body = await req.json();
+    const validationResult = inputSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
       return new Response(
-        JSON.stringify({ error: 'Text and voice are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: "Invalid input", 
+          details: validationResult.error.errors 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { text, voice } = validationResult.data;
 
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
@@ -138,10 +156,10 @@ serve(async (req) => {
       .from('voiceovers')
       .getPublicUrl(filename);
 
-    // For private bucket, use signed URL instead
+    // For private bucket, use signed URL instead (valid for 7 days)
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('voiceovers')
-      .createSignedUrl(filename, 60 * 60 * 24 * 365); // 1 year
+      .createSignedUrl(filename, 60 * 60 * 24 * 7); // 7 days
 
     const audioUrl = signedUrlData?.signedUrl || urlData.publicUrl;
 
