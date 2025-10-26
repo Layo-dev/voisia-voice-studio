@@ -53,15 +53,15 @@ const Dashboard = () => {
       <section className="min-h-screen pt-24 pb-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_hsl(250_85%_65%/0.1)_0%,_transparent_50%)]" />
         
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-2">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
                 Welcome back, {profile?.name || "there"}!
               </h1>
               <p className="text-muted-foreground">
@@ -70,7 +70,7 @@ const Dashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Card className="glass-card border-primary/20">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Credits Available</CardTitle>
@@ -130,14 +130,14 @@ const Dashboard = () => {
                     {voiceovers.map((voiceover) => (
                       <div
                         key={voiceover.id}
-                        className="p-4 rounded-lg bg-background/50 border border-border/50 hover:border-primary/50 transition-colors"
+                        className="p-3 sm:p-4 rounded-lg bg-background/50 border border-border/50 hover:border-primary/50 transition-colors"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
+                        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                          <div className="flex-1 min-w-0 w-full">
+                            <p className="text-sm font-medium break-words">
                               {voiceover.text_input}
                             </p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs text-muted-foreground">
                               <span>Voice: {voiceover.voice_id}</span>
                               {voiceover.duration_seconds && (
                                 <span>Duration: {voiceover.duration_seconds}s</span>
@@ -148,7 +148,7 @@ const Dashboard = () => {
                             </div>
                           </div>
                           {voiceover.audio_url && (
-                            <audio controls className="h-8">
+                            <audio controls className="w-full sm:w-auto sm:h-8">
                               <source src={voiceover.audio_url} type="audio/mpeg" />
                             </audio>
                           )}
@@ -157,8 +157,8 @@ const Dashboard = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <Mic className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <div className="text-center py-8 sm:py-12">
+                    <Mic className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 text-muted-foreground/50" />
                     <p className="text-muted-foreground mb-4">
                       No voiceovers yet. Create your first one!
                     </p>

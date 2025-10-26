@@ -12,11 +12,11 @@ const Index = () => {
       <Features />
 
       {/* Demo Section */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_hsl(260_80%_60%/0.15)_0%,_transparent_50%)]" />
         
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <motion.div initial={{
             opacity: 0,
             x: -30
@@ -42,30 +42,30 @@ const Index = () => {
                 an adventure and experience the future of AI voiceovers.
               </p>
 
-              <div className="flex flex-wrap gap-4">
-                <Button variant="hero" size="lg">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                <Button variant="hero" size="lg" className="w-full sm:w-auto min-h-[44px]">
                   Generate your first voice
                   <ArrowRight className="w-5 h-5" />
                 </Button>
-                <Button variant="outline" size="lg">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto min-h-[44px]">
                   Watch Demo
                 </Button>
               </div>
 
-              <div className="flex items-center gap-8 pt-4">
-                <div>
-                  <div className="text-2xl font-bold gradient-text">50K+</div>
-                  <div className="text-sm text-muted-foreground">Active Users</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-8 pt-4">
+                <div className="text-center sm:text-left">
+                  <div className="text-xl sm:text-2xl font-bold gradient-text">50K+</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Active Users</div>
                 </div>
-                <div className="w-px h-12 bg-border" />
-                <div>
-                  <div className="text-2xl font-bold gradient-text">1M+</div>
-                  <div className="text-sm text-muted-foreground">Voices Generated</div>
+                <div className="hidden sm:block w-px bg-border" />
+                <div className="text-center sm:text-left">
+                  <div className="text-xl sm:text-2xl font-bold gradient-text">1M+</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Voices Generated</div>
                 </div>
-                <div className="w-px h-12 bg-border" />
-                <div>
-                  <div className="text-2xl font-bold gradient-text">30+</div>
-                  <div className="text-sm text-muted-foreground">Languages</div>
+                <div className="hidden sm:block w-px bg-border sm:hidden" />
+                <div className="text-center sm:text-left col-span-2 sm:col-span-1">
+                  <div className="text-xl sm:text-2xl font-bold gradient-text">30+</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Languages</div>
                 </div>
               </div>
             </motion.div>
@@ -88,8 +88,8 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 relative">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{
           opacity: 0,
           y: 20
@@ -100,7 +100,7 @@ const Index = () => {
           once: true
         }} transition={{
           duration: 0.6
-        }} className="glass-card rounded-3xl p-12 md:p-16 text-center space-y-8 relative overflow-hidden">
+        }} className="glass-card rounded-3xl p-6 sm:p-8 md:p-12 lg:p-16 text-center space-y-6 sm:space-y-8 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
             
             <div className="relative z-10 space-y-6">
@@ -113,7 +113,7 @@ const Index = () => {
                 control of how any words sounds with intelligent tools and features.
               </p>
 
-              <Button variant="hero" size="lg" className="text-lg">
+              <Button variant="hero" size="lg" className="text-base sm:text-lg w-full sm:w-auto min-h-[44px]">
                 Generate your first free
               </Button>
             </div>
@@ -122,9 +122,9 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className="border-t border-border/50 py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center sm:text-left">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
