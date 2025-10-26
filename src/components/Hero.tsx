@@ -8,6 +8,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 export const Hero = () => {
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("alloy");
@@ -15,6 +16,35 @@ export const Hero = () => {
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
   const { user } = useAuthContext();
   const navigate = useNavigate();
+
+  // Fetch user profile data including credits
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("credits, plan")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Plan limits
+  const planLimits = {
+    free: 1000,
+    pro: 50000,
+  };
+
+  const currentLimit = profile?.plan ? planLimits[profile.plan as keyof typeof planLimits] || planLimits.free : planLimits.free;
+  const remainingChars = profile?.credits || 0;
 
   const handleGenerate = async () => {
     if (!user) {
@@ -61,11 +91,11 @@ export const Hero = () => {
       setIsGenerating(false);
     }
   };
-  return <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+  return <section className="relative min-h-[80vh] sm:min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Gradient Glow Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_hsl(250_85%_65%/0.2)_0%,_transparent_70%)]" />
       
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div initial={{
         opacity: 0,
         y: 30
@@ -112,7 +142,7 @@ export const Hero = () => {
         }} transition={{
           delay: 0.4,
           duration: 0.6
-        }} className="glass-card rounded-2xl p-8 space-y-6 shadow-2xl">
+        }} className="glass-card rounded-2xl p-4 sm:p-6 md:p-8 space-y-6 shadow-2xl">
             <div className="space-y-4">
               {/* Text Input */}
               <div className="space-y-2">
@@ -120,15 +150,24 @@ export const Hero = () => {
                   <Volume2 className="w-4 h-4" />
                   Enter your text
                 </label>
-                <Textarea placeholder="Type or paste your text here to generate a voiceover..." value={text} onChange={e => setText(e.target.value)} className="min-h-[120px] resize-none bg-input/50 border-border/50 focus:border-primary/50 transition-colors" />
+                <Textarea placeholder="Type or paste your text here to generate a voiceover..." value={text} onChange={e => setText(e.target.value)} className="min-h-[100px] sm:min-h-[120px] resize-none bg-input/50 border-border/50 focus:border-primary/50 transition-colors text-base" />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{text.length} characters</span>
-                  <span>Free: 1000 characters remaining</span>
+                  <span>
+                    {profile ? (
+                      <>
+                        {profile.plan === 'pro' ? 'Pro' : 'Free'}: {remainingChars.toLocaleString()} credits remaining
+                        {profile.plan !== 'pro' && ` (${currentLimit.toLocaleString()} char limit)`}
+                      </>
+                    ) : (
+                      "Sign in to generate voiceovers"
+                    )}
+                  </span>
                 </div>
               </div>
 
               {/* Voice Selector */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground/80">Voice</label>
                   <Select value={voice} onValueChange={setVoice}>
@@ -166,11 +205,11 @@ export const Hero = () => {
             </div>
 
             {/* Generate Button */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button 
                 variant="hero" 
                 size="lg" 
-                className="flex-1 text-base shadow-none ring-0 hover:shadow-none" 
+                className="w-full sm:flex-1 text-base min-h-[44px]" 
                 disabled={!text.trim() || isGenerating || !user}
                 onClick={handleGenerate}
               >
@@ -227,11 +266,11 @@ export const Hero = () => {
         }} transition={{
           delay: 0.6,
           duration: 0.6
-        }} className="flex flex-wrap gap-4 justify-center">
-            <Button variant="outline" size="lg">
+        }} className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto min-h-[44px]">
               View Demo
             </Button>
-            <Button variant="ghost" size="lg">
+            <Button variant="ghost" size="lg" className="w-full sm:w-auto min-h-[44px]">
               Learn More →
             </Button>
           </motion.div>

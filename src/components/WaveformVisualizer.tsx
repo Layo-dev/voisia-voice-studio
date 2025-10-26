@@ -1,25 +1,35 @@
 import { motion } from "framer-motion";
 import { Play, Pause } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const WaveformVisualizer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const isMobile = useIsMobile();
+  const barCount = isMobile ? 20 : 40;
 
-  const bars = Array.from({ length: 40 }, (_, i) => ({
+  const [bars, setBars] = useState(Array.from({ length: barCount }, (_, i) => ({
     id: i,
     height: Math.random() * 60 + 20,
-  }));
+  })));
+
+  useEffect(() => {
+    setBars(Array.from({ length: barCount }, (_, i) => ({
+      id: i,
+      height: Math.random() * 60 + 20,
+    })));
+  }, [barCount]);
 
   return (
-    <div className="glass-card rounded-xl p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Audio Preview</h3>
-          <p className="text-sm text-muted-foreground">Listen before you download</p>
+    <div className="glass-card rounded-xl p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-0 sm:justify-between">
+        <div className="text-center sm:text-left">
+          <h3 className="text-base sm:text-lg font-semibold">Audio Preview</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">Listen before you download</p>
         </div>
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors shadow-sm"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-all hover:scale-105 active:scale-95 glow-primary min-h-[44px] min-w-[44px]"
         >
           {isPlaying ? (
             <Pause className="w-6 h-6 text-white" />
@@ -30,7 +40,7 @@ export const WaveformVisualizer = () => {
       </div>
 
       {/* Waveform */}
-      <div className="flex items-center gap-1 h-20 justify-center">
+      <div className="flex items-center gap-0.5 sm:gap-1 h-16 sm:h-20 justify-center">
         {bars.map((bar, index) => (
           <motion.div
             key={bar.id}
