@@ -24,7 +24,7 @@ const signUpSchema = z.object({
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { signIn, signUp, user } = useAuthContext();
+  const { signIn, signUp, user, signInWithGoogle } = useAuthContext();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -257,7 +257,7 @@ const Auth = () => {
             <div className="mt-8 text-center">
               <p className="text-sm text-muted-foreground mb-4">Or continue with</p>
               <div className="flex gap-4">
-                <Button variant="outline" className="flex-1">
+                <Button variant="outline" className="flex-1" onClick={() => signInWithGoogle()}>
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"

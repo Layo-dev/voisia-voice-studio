@@ -170,7 +170,7 @@ export const Hero = () => {
               <Button 
                 variant="hero" 
                 size="lg" 
-                className="flex-1 text-base" 
+                className="flex-1 text-base shadow-none ring-0 hover:shadow-none" 
                 disabled={!text.trim() || isGenerating || !user}
                 onClick={handleGenerate}
               >

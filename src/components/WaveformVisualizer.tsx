@@ -19,7 +19,7 @@ export const WaveformVisualizer = () => {
         </div>
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-all hover:scale-105 glow-primary"
+          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors shadow-sm"
         >
           {isPlaying ? (
             <Pause className="w-6 h-6 text-white" />

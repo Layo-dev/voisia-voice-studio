@@ -30,10 +30,14 @@ export const Navigation = () => {
             <span className="text-2xl font-bold gradient-text">Voisia</span>
           </Link>
 
+          {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-foreground/80 hover:text-foreground transition-colors">
               Home
             </Link>
+            <a href="/#features" className="text-foreground/80 hover:text-foreground transition-colors">
+              Features
+            </a>
             <Link to="/pricing" className="text-foreground/80 hover:text-foreground transition-colors">
               Pricing
             </Link>
@@ -47,7 +51,8 @@ export const Navigation = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop auth / user actions */}
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -87,6 +92,15 @@ export const Navigation = () => {
               </>
             )}
           </div>
+
+          {/* Mobile: only logo/name + hamburger */}
+          <button
+            aria-label="Open menu"
+            className="md:hidden inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium border border-border/50 bg-card/50"
+            type="button"
+          >
+            ☰
+          </button>
         </div>
       </div>
     </nav>

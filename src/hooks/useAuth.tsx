@@ -8,6 +8,31 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const syncProfile = async (currentSession: Session | null) => {
+    try {
+      const authUser = currentSession?.user;
+      if (!authUser) return;
+      const email = authUser.email ?? undefined;
+      const name = (authUser.user_metadata?.name || authUser.user_metadata?.full_name) as string | undefined;
+      if (!email && !name) return;
+      // Update existing profile row created by trigger
+      const updates: Record<string, unknown> = {};
+      if (email) updates.email = email;
+      if (name) updates.name = name;
+      if (Object.keys(updates).length === 0) return;
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("user_id", authUser.id);
+      if (error) {
+        // Silently ignore; profile creation is handled by DB trigger
+        console.warn("Profile sync failed:", error.message);
+      }
+    } catch (e) {
+      console.warn("Profile sync threw:", e);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -15,6 +40,7 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (session) syncProfile(session);
       }
     );
 
@@ -23,6 +49,7 @@ export const useAuth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session) syncProfile(session);
     });
 
     return () => subscription.unsubscribe();
@@ -119,6 +146,26 @@ export const useAuth = () => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+      toast.message("Redirecting to Google...");
+      return { data, error: null };
+    } catch (error: any) {
+      toast.error("An unexpected error occurred");
+      return { error };
+    }
+  };
+
   return {
     user,
     session,
@@ -127,5 +174,6 @@ export const useAuth = () => {
     signIn,
     signOut,
     resetPassword,
+    signInWithGoogle,
   };
 };
