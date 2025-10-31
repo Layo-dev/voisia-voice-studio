@@ -46,7 +46,7 @@ export type Database = {
           id: string
           name: string | null
           plan: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -55,7 +55,7 @@ export type Database = {
           id?: string
           name?: string | null
           plan?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -64,7 +64,7 @@ export type Database = {
           id?: string
           name?: string | null
           plan?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -75,7 +75,7 @@ export type Database = {
           plan: string
           renew_date: string | null
           status: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -83,7 +83,7 @@ export type Database = {
           plan: string
           renew_date?: string | null
           status?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -91,7 +91,7 @@ export type Database = {
           plan?: string
           renew_date?: string | null
           status?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -131,7 +131,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           text_input: string
-          user_id: string | null
+          user_id: string
           voice_id: string
         }
         Insert: {
@@ -140,7 +140,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           text_input: string
-          user_id?: string | null
+          user_id: string
           voice_id: string
         }
         Update: {
@@ -149,7 +149,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           text_input?: string
-          user_id?: string | null
+          user_id?: string
           voice_id?: string
         }
         Relationships: [
