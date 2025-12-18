@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, User, Menu, X } from "lucide-react";
+import { LogOut, User, Menu, X } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useState } from "react";
+import voisiaLogo from "@/assets/viosia-logo.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,9 +29,11 @@ export const Navigation = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-primary group-hover:scale-110 transition-transform">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <img 
+              src={voisiaLogo} 
+              alt="Voisia" 
+              className="h-8 w-auto group-hover:scale-110 transition-transform"
+            />
             <span className="text-2xl font-bold gradient-text">Voisia</span>
           </Link>
 
