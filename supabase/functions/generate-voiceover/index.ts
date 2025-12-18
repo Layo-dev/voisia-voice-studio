@@ -21,7 +21,8 @@ serve(async (req) => {
         .trim(),
       voice: z.enum(['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'], {
         errorMap: () => ({ message: "Invalid voice selection" })
-      })
+      }),
+      speed: z.number().min(0.25).max(4.0).optional().default(1.0),
     });
 
     const body = await req.json();
@@ -38,7 +39,7 @@ serve(async (req) => {
       );
     }
 
-    const { text, voice } = validationResult.data;
+    const { text, voice, speed } = validationResult.data;
 
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
@@ -115,6 +116,7 @@ serve(async (req) => {
         model: profile.plan === 'pro' ? 'tts-1-hd' : 'tts-1',
         input: text,
         voice: voice,
+        speed: speed,
         response_format: 'mp3',
       }),
     });

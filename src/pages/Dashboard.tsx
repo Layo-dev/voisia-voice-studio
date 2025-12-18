@@ -1,18 +1,19 @@
 import { Navigation } from "@/components/Navigation";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, Sparkles, Crown, Clock } from "lucide-react";
+import { Sparkles, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { VoiceEditor } from "@/components/VoiceEditor";
 
 const Dashboard = () => {
   const { user } = useAuthContext();
 
   // Fetch user profile
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -27,24 +28,8 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  // Fetch voiceover history
-  const { data: voiceovers, isLoading: voiceoversLoading } = useQuery({
-    queryKey: ["voiceovers", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("voiceovers")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
   const isPro = profile?.plan === "pro";
+  const maxCharacters = isPro ? 5000 : 1000;
 
   return (
     <div className="min-h-screen">
@@ -65,15 +50,15 @@ const Dashboard = () => {
                 Welcome back, {profile?.name || "there"}!
               </h1>
               <p className="text-muted-foreground">
-                Manage your voiceovers and account settings
+                Create professional voiceovers in seconds
               </p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Card className="glass-card border-primary/20">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Credits Available</CardTitle>
+                  <CardTitle className="text-sm font-medium">Credits</CardTitle>
                   <Sparkles className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
@@ -86,18 +71,7 @@ const Dashboard = () => {
 
               <Card className="glass-card border-primary/20">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Voiceovers</CardTitle>
-                  <Mic className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{voiceovers?.length || 0}</div>
-                  <p className="text-xs text-muted-foreground">All time</p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card border-primary/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Account Type</CardTitle>
+                  <CardTitle className="text-sm font-medium">Plan</CardTitle>
                   <Crown className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
@@ -113,65 +87,8 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {/* Recent Voiceovers */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Recent Voiceovers
-                </CardTitle>
-                <CardDescription>Your latest voice generations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {voiceoversLoading ? (
-                  <p className="text-muted-foreground">Loading...</p>
-                ) : voiceovers && voiceovers.length > 0 ? (
-                  <div className="space-y-4">
-                    {voiceovers.map((voiceover) => (
-                      <div
-                        key={voiceover.id}
-                        className="p-3 sm:p-4 rounded-lg bg-background/50 border border-border/50 hover:border-primary/50 transition-colors"
-                      >
-                        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                          <div className="flex-1 min-w-0 w-full">
-                            <p className="text-sm font-medium break-words">
-                              {voiceover.text_input}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs text-muted-foreground">
-                              <span>Voice: {voiceover.voice_id}</span>
-                              {voiceover.duration_seconds && (
-                                <span>Duration: {voiceover.duration_seconds}s</span>
-                              )}
-                              <span>
-                                {new Date(voiceover.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                          {voiceover.audio_url && (
-                            <audio controls className="w-full sm:w-auto sm:h-8">
-                              <source src={voiceover.audio_url} type="audio/mpeg" />
-                            </audio>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 sm:py-12">
-                    <Mic className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-muted-foreground mb-4">
-                      No voiceovers yet. Create your first one!
-                    </p>
-                    <Link to="/">
-                      <Button variant="hero">
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Create Voiceover
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {/* Voice Editor */}
+            <VoiceEditor maxCharacters={maxCharacters} isPro={isPro} />
           </motion.div>
         </div>
       </section>
