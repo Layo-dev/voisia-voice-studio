@@ -128,7 +128,6 @@ const Index = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold gradient-text">Voisia</span>
               </div>
