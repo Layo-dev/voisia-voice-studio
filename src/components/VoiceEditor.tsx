@@ -99,10 +99,11 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const response = await supabase.functions.invoke("generate-voiceover", {
+      const response = await supabase.functions.invoke("create-voiceover", {
         body: { 
           text, 
           voice,
+          language: language,
           speed: speed[0],
         },
       });

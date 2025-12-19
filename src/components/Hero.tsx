@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 export const Hero = () => {
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("alloy");
+  const [language, setLanguage] = useState("en");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
   const { user } = useAuthContext();
@@ -62,8 +63,8 @@ export const Hero = () => {
     setGeneratedAudio(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-voiceover', {
-        body: { text: text.trim(), voice }
+      const { data, error } = await supabase.functions.invoke('create-voiceover', {
+        body: { text: text.trim(), voice, language }
       });
 
       if (error) throw error;
@@ -187,13 +188,12 @@ export const Hero = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground/80">Language</label>
-                  <Select defaultValue="en-us">
+                  <Select value={language} onValueChange={setLanguage}>
                     <SelectTrigger className="bg-input/50 border-border/50">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en-us">English (US)</SelectItem>
-                      <SelectItem value="en-gb">English (UK)</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
                       <SelectItem value="es">Spanish</SelectItem>
                       <SelectItem value="fr">French</SelectItem>
                       <SelectItem value="de">German</SelectItem>
