@@ -26,13 +26,13 @@ export const Navigation = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+       <div className="container mx-auto px-4 h-16">
+       <div className="flex h-full items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
             <img 
               src={voisiaLogo} 
               alt="Voisia" 
-              className="h-8 w-auto group-hover:scale-110 transition-transform"
+              className="h-12 w-auto group-hover:scale-110 transition-transform"
             />
             <span className="text-2xl font-bold gradient-text">Voisia</span>
           </Link>
