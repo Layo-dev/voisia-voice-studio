@@ -28,13 +28,13 @@ export const Navigation = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-           <img 
-             src={voisiaLogo} 
-             alt="Voisia" 
-             className="h-8 w-auto group-hover:scale-110 transition-transform"
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+            <img 
+              src={voisiaLogo} 
+              alt="Voisia" 
+              className="h-10 sm:h-11 md:h-12 lg:h-14 w-auto group-hover:scale-110 transition-transform"
             />
-            <span className="text-2xl font-bold gradient-text">Voisia</span>
+            <span className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text">Voisia</span>
           </Link>
 
           {/* Desktop nav links */}
