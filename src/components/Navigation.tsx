@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, Menu, X } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useState } from "react";
-import voisiaLogo from "@/assets/viosia-logo.svg";
+import voisiaLogo from "@/assets/voisia-logo.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
