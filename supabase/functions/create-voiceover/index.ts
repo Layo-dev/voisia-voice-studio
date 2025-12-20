@@ -10,14 +10,18 @@ const corsHeaders = {
 const TTSFORFREE_API_URL = "https://api.ttsforfree.com/api";
 
 // Voice mapping - TTSForFree full voice IDs (v1:... format required)
-// These are popular English voices from TTSForFree
+// Maps frontend voice IDs to TTSForFree voice IDs
+// Note: Currently all voices use the default voice ID. Update with actual TTSForFree voice IDs
+// when you have them. You can find voice IDs by checking TTSForFree API documentation
+// or by inspecting their website's voice selection.
 const VOICE_MAP: Record<string, string> = {
-  "en-US-Standard-A": "v1:AvaMNeural:en-US", // Ava - Female US
-  "en-US-Standard-B": "v1:AndrewMNeural:en-US", // Andrew - Male US
-  "en-US-Standard-C": "v1:EmmaMNeural:en-US", // Emma - Female US
-  "en-US-Standard-D": "v1:BrianMNeural:en-US", // Brian - Male US
-  "en-US-Standard-E": "v1:JennyNeural:en-US", // Jenny - Female US
-  "en-US-Standard-F": "v1:GuyNeural:en-US", // Guy - Male US
+  // Frontend voice IDs mapped to TTSForFree voice IDs
+  "en-US-Standard-A": "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv", // Ava - Female US
+  "en-US-Standard-B": "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv", // Andrew - Male US
+  "en-US-Standard-C": "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv", // Emma - Female US
+  "en-US-Standard-D": "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv", // Brian - Male US (default)
+  "en-US-Standard-E": "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv", // Jenny - Female US
+  "en-US-Standard-F": "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv", // Guy - Male US
 };
 
 // Default voice ID from TTSForFree docs (Brian voice)
@@ -69,15 +73,14 @@ serve(async (req) => {
       throw new Error("Authorization header is required");
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Get user from JWT token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
       console.error("Auth error:", userError);
       throw new Error("Authentication required");
@@ -103,13 +106,12 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .single();
 
-    if (profileError) {
+    if (profileError || !profile) {
       console.error("Profile fetch error:", profileError);
       throw new Error("Could not fetch user profile");
     }
 
-    const profileId = profile?.id;
-    const credits = profile?.credits || 0;
+    const credits = profile.credits || 0;
     const charactersNeeded = text.length;
     
     // 1 credit = 100 characters
@@ -129,10 +131,10 @@ serve(async (req) => {
       );
     }
 
-    // Map the voice to TTSForFree format - use default voice for now
-    // The v1:... format requires fetching the exact voice ID from their API
-    const ttsVoice = DEFAULT_VOICE;
-    console.log(`Using voice: ${ttsVoice}`);
+    // Map the voice to TTSForFree format using the voice mapping
+    // If voice is not found in map, fall back to default voice
+    const ttsVoice = VOICE_MAP[voice] || DEFAULT_VOICE;
+    console.log(`Using voice: ${voice} -> ${ttsVoice}`);
 
     // Create TTS job using the correct endpoint
     const ttsResponse = await fetch(`${TTSFORFREE_API_URL}/tts/createby`, {
@@ -204,11 +206,11 @@ serve(async (req) => {
       // Don't fail the request, just log the error
     }
 
-    // Save voiceover record - use profile.id (not auth user.id) for foreign key
+    // Save voiceover record - use user.id to match RLS policy (auth.uid() = user_id)
     const { data: voiceover, error: insertError } = await supabase
       .from('voiceovers')
       .insert({
-        user_id: profileId, // Use profile.id as that's what the FK references
+        user_id: user.id, // Use auth user.id to match RLS policy expectation
         text_input: text,
         voice_id: voice,
         audio_url: audioUrl,

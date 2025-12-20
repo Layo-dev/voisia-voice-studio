@@ -15,12 +15,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 const VOICES = [
-  { value: "en-US-Standard-A", label: "Standard Female (US)", gender: "Female" },
-  { value: "en-US-Standard-B", label: "Standard Male (US)", gender: "Male" },
-  { value: "en-US-Standard-C", label: "Standard Female 2 (US)", gender: "Female" },
-  { value: "en-US-Standard-D", label: "Standard Male 2 (US)", gender: "Male" },
-  { value: "en-US-Standard-E", label: "Standard Female 3 (US)", gender: "Female" },
-  { value: "en-US-Standard-F", label: "Standard Male 3 (US)", gender: "Male" },
+  { value: "en-US-Standard-A", label: "Ava (Female US)", gender: "Female" },
+  { value: "en-US-Standard-B", label: "Andrew (Male US)", gender: "Male" },
+  { value: "en-US-Standard-C", label: "Emma (Female US)", gender: "Female" },
+  { value: "en-US-Standard-D", label: "Brian (Male US)", gender: "Male" },
+  { value: "en-US-Standard-E", label: "Jenny (Female US)", gender: "Female" },
+  { value: "en-US-Standard-F", label: "Guy (Male US)", gender: "Male" },
 ];
 
 const LANGUAGES = [
