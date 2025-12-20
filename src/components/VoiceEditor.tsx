@@ -14,12 +14,12 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const VOICES = [
-  { value: "alloy", label: "Alloy", gender: "Female" },
-  { value: "echo", label: "Echo", gender: "Male" },
-  { value: "fable", label: "Fable", gender: "Male" },
-  { value: "onyx", label: "Onyx", gender: "Male" },
-  { value: "nova", label: "Nova", gender: "Female" },
-  { value: "shimmer", label: "Shimmer", gender: "Female" },
+  { value: "en-US-Standard-A", label: "Standard Female (US)", gender: "Female" },
+  { value: "en-US-Standard-B", label: "Standard Male (US)", gender: "Male" },
+  { value: "en-US-Standard-C", label: "Standard Female 2 (US)", gender: "Female" },
+  { value: "en-US-Standard-D", label: "Standard Male 2 (US)", gender: "Male" },
+  { value: "en-US-Standard-E", label: "Standard Female 3 (US)", gender: "Female" },
+  { value: "en-US-Standard-F", label: "Standard Male 3 (US)", gender: "Male" },
 ];
 
 const LANGUAGES = [
@@ -49,7 +49,7 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
   const queryClient = useQueryClient();
 
   const [text, setText] = useState("");
-  const [voice, setVoice] = useState("alloy");
+  const [voice, setVoice] = useState("en-US-Standard-D");
   const [language, setLanguage] = useState("en-US");
   const [tone, setTone] = useState("normal");
   const [speed, setSpeed] = useState([1.0]);
@@ -66,7 +66,7 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
       try {
         const parsed = JSON.parse(draft);
         setText(parsed.text || "");
-        setVoice(parsed.voice || "alloy");
+        setVoice(parsed.voice || "en-US-Standard-D");
         setLanguage(parsed.language || "en-US");
         setTone(parsed.tone || "normal");
         setSpeed(parsed.speed || [1.0]);

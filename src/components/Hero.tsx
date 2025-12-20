@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 export const Hero = () => {
   const [text, setText] = useState("");
-  const [voice, setVoice] = useState("alloy");
+  const [voice, setVoice] = useState("en-US-Standard-D");
   const [language, setLanguage] = useState("en");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
@@ -190,12 +190,12 @@ export const Hero = () => {
                       <SelectValue placeholder="Select voice" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="alloy">Alloy</SelectItem>
-                      <SelectItem value="echo">Echo</SelectItem>
-                      <SelectItem value="fable">Fable</SelectItem>
-                      <SelectItem value="onyx">Onyx</SelectItem>
-                      <SelectItem value="nova">Nova</SelectItem>
-                      <SelectItem value="shimmer">Shimmer</SelectItem>
+                      <SelectItem value="en-US-Standard-A">Standard Female (US)</SelectItem>
+                      <SelectItem value="en-US-Standard-B">Standard Male (US)</SelectItem>
+                      <SelectItem value="en-US-Standard-C">Standard Female 2 (US)</SelectItem>
+                      <SelectItem value="en-US-Standard-D">Standard Male 2 (US)</SelectItem>
+                      <SelectItem value="en-US-Standard-E">Standard Female 3 (US)</SelectItem>
+                      <SelectItem value="en-US-Standard-F">Standard Male 3 (US)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
