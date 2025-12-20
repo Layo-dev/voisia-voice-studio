@@ -1,4 +1,4 @@
 project_id = "tgekzeicysndenoexghl"
 
-[functions.generate-voiceover]
+[functions.create-voiceover]
 verify_jwt = true
