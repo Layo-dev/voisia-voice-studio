@@ -7,23 +7,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TTSFORFREE_API_URL = "https://api.ttsforfree.com/api/tts";
+const TTSFORFREE_API_URL = "https://api.ttsforfree.com/api";
 
-// Voice mapping - TTSForFree voice IDs
+// Voice mapping - TTSForFree full voice IDs (v1:... format required)
+// These are popular English voices from TTSForFree
 const VOICE_MAP: Record<string, string> = {
-  "en-US-Standard-A": "en-US-AvaMultilingualNeural",
-  "en-US-Standard-B": "en-US-AndrewMultilingualNeural",
-  "en-US-Standard-C": "en-US-EmmaMultilingualNeural",
-  "en-US-Standard-D": "en-US-BrianMultilingualNeural",
-  "en-US-Standard-E": "en-US-JennyNeural",
-  "en-US-Standard-F": "en-US-GuyNeural",
+  "en-US-Standard-A": "v1:AvaMNeural:en-US", // Ava - Female US
+  "en-US-Standard-B": "v1:AndrewMNeural:en-US", // Andrew - Male US
+  "en-US-Standard-C": "v1:EmmaMNeural:en-US", // Emma - Female US
+  "en-US-Standard-D": "v1:BrianMNeural:en-US", // Brian - Male US
+  "en-US-Standard-E": "v1:JennyNeural:en-US", // Jenny - Female US
+  "en-US-Standard-F": "v1:GuyNeural:en-US", // Guy - Male US
 };
 
-async function pollForCompletion(jobId: string, apiKey: string, maxAttempts = 30): Promise<string> {
+// Default voice ID from TTSForFree docs (Brian voice)
+const DEFAULT_VOICE = "v1:YPj2X6j04RZcJdGzo-CC0GBpkJ985PD5X_VWU_nJkNzppGtbnxJL-dU_hglv";
+
+async function pollForCompletion(jobId: number, apiKey: string, maxAttempts = 30): Promise<string> {
   for (let i = 0; i < maxAttempts; i++) {
-    const response = await fetch(`${TTSFORFREE_API_URL}/GetStatus?id=${jobId}`, {
-      headers: { "x-api-key": apiKey },
+    const response = await fetch(`${TTSFORFREE_API_URL}/tts/status/${jobId}`, {
+      headers: { "X-API-Key": apiKey },
     });
+    
+    if (!response.ok) {
+      console.error(`Poll status error: ${response.status}`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      continue;
+    }
     
     const result = await response.json();
     console.log(`Poll attempt ${i + 1}: Status = ${result.Status}`);
@@ -34,8 +44,8 @@ async function pollForCompletion(jobId: string, apiKey: string, maxAttempts = 30
       throw new Error(result.Message || "TTS generation failed");
     }
     
-    // Wait 1 second before polling again
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Wait 2 seconds before polling again (docs recommend 5s, we use 2s)
+    await new Promise(resolve => setTimeout(resolve, 2000));
   }
   
   throw new Error("TTS generation timed out");
@@ -118,16 +128,17 @@ serve(async (req) => {
       );
     }
 
-    // Map the voice to TTSForFree format
-    const ttsVoice = VOICE_MAP[voice] || "en-US-BrianMultilingualNeural";
+    // Map the voice to TTSForFree format - use default voice for now
+    // The v1:... format requires fetching the exact voice ID from their API
+    const ttsVoice = DEFAULT_VOICE;
     console.log(`Using voice: ${ttsVoice}`);
 
-    // Create TTS job
-    const ttsResponse = await fetch(`${TTSFORFREE_API_URL}/CreateJob`, {
+    // Create TTS job using the correct endpoint
+    const ttsResponse = await fetch(`${TTSFORFREE_API_URL}/tts/createby`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'X-API-Key': apiKey,
       },
       body: JSON.stringify({
         Texts: text,
@@ -138,14 +149,23 @@ serve(async (req) => {
       }),
     });
 
+    const responseText = await ttsResponse.text();
+    console.log(`TTS API response status: ${ttsResponse.status}`);
+    console.log(`TTS API response body: ${responseText}`);
+
     if (!ttsResponse.ok) {
-      const errorText = await ttsResponse.text();
-      console.error("TTS API error:", errorText);
-      throw new Error(`TTS API error: ${ttsResponse.status}`);
+      console.error("TTS API error:", responseText);
+      throw new Error(`TTS API error: ${ttsResponse.status} - ${responseText}`);
     }
 
-    const ttsResult = await ttsResponse.json();
-    console.log("TTS response:", JSON.stringify(ttsResult));
+    let ttsResult;
+    try {
+      ttsResult = JSON.parse(responseText);
+    } catch {
+      throw new Error(`Invalid TTS API response: ${responseText}`);
+    }
+    
+    console.log("TTS response parsed:", JSON.stringify(ttsResult));
 
     let audioFilename: string;
 
@@ -155,12 +175,15 @@ serve(async (req) => {
     } else if (ttsResult.Status === "PENDING") {
       // Need to poll for completion
       audioFilename = await pollForCompletion(ttsResult.Id, apiKey);
+    } else if (ttsResult.Data) {
+      // Sometimes the API returns data without explicit SUCCESS status
+      audioFilename = ttsResult.Data;
     } else {
       throw new Error(ttsResult.Message || "TTS generation failed");
     }
 
     // Construct the audio URL
-    const audioUrl = `${TTSFORFREE_API_URL}/StreamFile?filename=${audioFilename}`;
+    const audioUrl = `${TTSFORFREE_API_URL}/tts/StreamFile?filename=${audioFilename}`;
     console.log(`Audio URL: ${audioUrl}`);
 
     // Deduct credits from user
