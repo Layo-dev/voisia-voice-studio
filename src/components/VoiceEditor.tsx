@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 const VOICES = [
   { value: "en-US-Standard-A", label: "Standard Female (US)", gender: "Female" },
@@ -47,6 +48,7 @@ interface VoiceEditorProps {
 export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
   const { user } = useAuthContext();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("en-US-Standard-D");
@@ -99,42 +101,38 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const response = await supabase.functions.invoke("create-voiceover", {
-        body: { 
-          text, 
-          voice,
-          language: language,
-          speed: speed[0],
-        },
-      });
+      // Use fetch directly to get the full response including status code
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-voiceover`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ 
+            text, 
+            voice,
+            language: language,
+            speed: speed[0],
+          }),
+        }
+      );
 
-      if (response.error) {
-        console.error('Function error object:', response.error);
-        console.error('Error message:', response.error.message);
-        console.error('Error context:', response.error.context);
-        console.error('Error status:', response.error.status);
-        
-        // Try to extract more detailed error message
-        const errorMessage = response.error.message || 
-                            response.error.context?.message || 
-                            `Edge function error (status: ${response.error.status || 'unknown'})`;
-        throw new Error(errorMessage);
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle insufficient credits specifically
+        if (response.status === 402 && data.error === "Insufficient credits") {
+          const error = new Error(`Insufficient credits. You need ${data.creditsNeeded} credit(s) but have ${data.creditsAvailable}.`);
+          (error as any).isInsufficientCredits = true;
+          throw error;
+        }
+        throw new Error(data.error || 'Failed to generate voiceover');
       }
 
-      // Check if response data contains an error
-      if (response.data?.error) {
-        console.error('Response data error:', response.data.error);
-        console.error('Response details:', response.data.details);
-        throw new Error(response.data.error);
-      }
-
-      // Ensure response.data exists and has the expected structure
-      if (!response.data || !response.data.voiceover) {
-        console.error('Unexpected response structure:', response.data);
-        throw new Error('Invalid response from server');
-      }
-
-      return response.data;
+      return data;
     },
     onSuccess: (data) => {
       setGeneratedAudio({
@@ -146,8 +144,18 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success(`Voiceover generated! ${data.creditsUsed} credits used.`);
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: Error & { isInsufficientCredits?: boolean }) => {
+      if (error.isInsufficientCredits) {
+        toast.error(error.message, {
+          action: {
+            label: "Get Credits",
+            onClick: () => navigate("/pricing")
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 
