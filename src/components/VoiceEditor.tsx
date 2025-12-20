@@ -109,8 +109,16 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
       });
 
       if (response.error) {
-        console.error('Function error:', response.error);
-        throw new Error(response.error.message || "Failed to generate voiceover");
+        console.error('Function error object:', response.error);
+        console.error('Error message:', response.error.message);
+        console.error('Error context:', response.error.context);
+        console.error('Error status:', response.error.status);
+        
+        // Try to extract more detailed error message
+        const errorMessage = response.error.message || 
+                            response.error.context?.message || 
+                            `Edge function error (status: ${response.error.status || 'unknown'})`;
+        throw new Error(errorMessage);
       }
 
       // Check if response data contains an error

@@ -72,9 +72,18 @@ export const Hero = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error context:', error.context);
+        console.error('Error status:', error.status);
+        throw error;
+      }
 
-      if (data.error) {
+      if (data?.error) {
+        console.error('Response data error:', data.error);
+        console.error('Response details:', data.details);
+        
         if (data.error.includes('Insufficient credits')) {
           toast.error(data.error, {
             action: {
