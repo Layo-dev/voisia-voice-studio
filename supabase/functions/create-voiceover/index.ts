@@ -96,10 +96,10 @@ serve(async (req) => {
       throw new Error("Text exceeds maximum length of 5000 characters");
     }
 
-    // Get user profile to check credits
+    // Get user profile to check credits - need both id and credits
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('credits, plan')
+      .select('id, credits, plan')
       .eq('user_id', user.id)
       .single();
 
@@ -108,6 +108,7 @@ serve(async (req) => {
       throw new Error("Could not fetch user profile");
     }
 
+    const profileId = profile?.id;
     const credits = profile?.credits || 0;
     const charactersNeeded = text.length;
     
@@ -182,8 +183,13 @@ serve(async (req) => {
       throw new Error(ttsResult.Message || "TTS generation failed");
     }
 
-    // Construct the audio URL
-    const audioUrl = `${TTSFORFREE_API_URL}/tts/StreamFile?filename=${audioFilename}`;
+    // The API returns a full CDN URL, use it directly
+    let audioUrl: string;
+    if (audioFilename.startsWith('http')) {
+      audioUrl = audioFilename;
+    } else {
+      audioUrl = `${TTSFORFREE_API_URL}/tts/StreamFile?filename=${audioFilename}`;
+    }
     console.log(`Audio URL: ${audioUrl}`);
 
     // Deduct credits from user
@@ -198,11 +204,11 @@ serve(async (req) => {
       // Don't fail the request, just log the error
     }
 
-    // Save voiceover record
+    // Save voiceover record - use profile.id (not auth user.id) for foreign key
     const { data: voiceover, error: insertError } = await supabase
       .from('voiceovers')
       .insert({
-        user_id: user.id,
+        user_id: profileId, // Use profile.id as that's what the FK references
         text_input: text,
         voice_id: voice,
         audio_url: audioUrl,
@@ -212,7 +218,21 @@ serve(async (req) => {
 
     if (insertError) {
       console.error("Voiceover insert error:", insertError);
-      // Don't fail the request, just log the error
+      // Still return a successful response with the audio URL even if DB insert fails
+      return new Response(
+        JSON.stringify({
+          success: true,
+          audioUrl,
+          voiceover: {
+            audio_url: audioUrl,
+            text_input: text,
+            voice_id: voice,
+          },
+          creditsUsed: creditsNeeded,
+          creditsRemaining: newCredits,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     return new Response(
