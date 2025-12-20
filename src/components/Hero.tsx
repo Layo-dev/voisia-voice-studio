@@ -64,7 +64,12 @@ export const Hero = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('create-voiceover', {
-        body: { text: text.trim(), voice, language }
+        body: { 
+          text: text.trim(), 
+          voice, 
+          language,
+          speed: 1.0
+        }
       });
 
       if (error) throw error;

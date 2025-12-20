@@ -109,7 +109,21 @@ export const VoiceEditor = ({ maxCharacters, isPro }: VoiceEditorProps) => {
       });
 
       if (response.error) {
+        console.error('Function error:', response.error);
         throw new Error(response.error.message || "Failed to generate voiceover");
+      }
+
+      // Check if response data contains an error
+      if (response.data?.error) {
+        console.error('Response data error:', response.data.error);
+        console.error('Response details:', response.data.details);
+        throw new Error(response.data.error);
+      }
+
+      // Ensure response.data exists and has the expected structure
+      if (!response.data || !response.data.voiceover) {
+        console.error('Unexpected response structure:', response.data);
+        throw new Error('Invalid response from server');
       }
 
       return response.data;
